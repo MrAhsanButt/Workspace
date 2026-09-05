@@ -62,19 +62,19 @@ const CalendarView = () => {
       <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs">
         {/* Days of week */}
         <div className="grid grid-cols-7 text-center bg-slate-50 border-b border-slate-200 py-2.5 text-xs font-semibold text-slate-600">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
+          <div><span className="hidden sm:inline">Sun</span><span className="sm:hidden">S</span></div>
+          <div><span className="hidden sm:inline">Mon</span><span className="sm:hidden">M</span></div>
+          <div><span className="hidden sm:inline">Tue</span><span className="sm:hidden">T</span></div>
+          <div><span className="hidden sm:inline">Wed</span><span className="sm:hidden">W</span></div>
+          <div><span className="hidden sm:inline">Thu</span><span className="sm:hidden">T</span></div>
+          <div><span className="hidden sm:inline">Fri</span><span className="sm:hidden">F</span></div>
+          <div><span className="hidden sm:inline">Sat</span><span className="sm:hidden">S</span></div>
         </div>
 
         {/* Days Cells */}
         <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
           {blanksArray.map((b) => (
-            <div key={`blank-${b}`} className="min-h-[100px] bg-slate-50/50 p-2" />
+            <div key={`blank-${b}`} className="min-h-[60px] sm:min-h-[100px] bg-slate-50/50 p-1 sm:p-2" />
           ))}
 
           {daysArray.map((day) => {
@@ -86,15 +86,15 @@ const CalendarView = () => {
             return (
               <div
                 key={`day-${day}`}
-                className={`min-h-[100px] p-2 space-y-1.5 transition-colors ${
+                className={`min-h-[60px] sm:min-h-[100px] p-1 sm:p-2 space-y-1 sm:space-y-1.5 transition-colors ${
                   isToday ? 'bg-blue-50/30' : 'hover:bg-slate-50/60'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
-                    className={`text-xs font-semibold ${
+                    className={`text-[10px] sm:text-xs font-semibold ${
                       isToday
-                        ? 'w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[11px]'
+                        ? 'w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[9px] sm:text-[11px]'
                         : 'text-slate-600'
                     }`}
                   >
@@ -106,16 +106,19 @@ const CalendarView = () => {
                 </div>
 
                 <div className="space-y-1">
-                  {dayTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      onClick={() => setSelectedTask(task)}
-                      className="p-1 px-1.5 rounded bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 text-[11px] text-slate-800 truncate cursor-pointer transition-colors"
-                      title={task.title}
-                    >
-                      {task.title}
-                    </div>
-                  ))}
+                    {dayTasks.slice(0, 2).map((task) => (
+                      <div
+                        key={task.id}
+                        onClick={() => setSelectedTask(task)}
+                        className="p-0.5 sm:p-1 px-1 sm:px-1.5 rounded bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 text-[9px] sm:text-[11px] text-slate-800 truncate cursor-pointer transition-colors"
+                        title={task.title}
+                      >
+                        {task.title}
+                      </div>
+                    ))}
+                    {dayTasks.length > 2 && (
+                      <div className="text-[9px] text-slate-400 font-medium">+{dayTasks.length - 2} more</div>
+                    )}
                 </div>
               </div>
             )

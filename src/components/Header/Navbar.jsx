@@ -292,7 +292,7 @@ const Navbar = () => {
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-semibold cursor-pointer text-slate-800"
                   >
                     <span>{activeWorkspace?.emoji || '📁'}</span>
-                    <span className="text-slate-800 max-w-[140px] truncate">{activeWorkspace?.name}</span>
+                    <span className="text-slate-800 max-w-[90px] sm:max-w-[140px] truncate">{activeWorkspace?.name}</span>
                     <ChevronDown className="w-3 h-3 text-slate-400" />
                   </button>
                 </Dropdown>
@@ -526,7 +526,7 @@ const Navbar = () => {
         onCancel={() => setOwnerBroadcastModalOpen(false)}
         footer={null}
         centered
-        width={480}
+        width="min(480px, 95vw)"
         styles={{ content: { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a' } }}
       >
         <form onSubmit={handleSendBroadcast} className="mt-3 space-y-3 text-xs">
@@ -572,7 +572,7 @@ const Navbar = () => {
         onCancel={() => { setAddAccountOpen(false); setNewAccount(emptyAccount) }}
         footer={null}
         centered
-        width={420}
+        width="min(420px, 95vw)"
         styles={{ content: { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a' } }}
       >
         <p className="text-xs text-slate-500 mb-4">

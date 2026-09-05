@@ -15,7 +15,7 @@ const ActivityLogView = () => {
   return (
     <div className="space-y-4 max-w-3xl">
       {/* Header & Filter */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-xs gap-2">
         <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
           <Activity className="w-4 h-4 text-blue-600" />
           <span>Activity Stream</span>
@@ -26,7 +26,7 @@ const ActivityLogView = () => {
           <Select
             value={filterUser}
             onChange={setFilterUser}
-            className="w-36"
+            className="w-32 sm:w-36"
             options={[
               { label: 'All Users', value: 'all' },
               ...MOCK_USERS.map((u) => ({ label: u.name, value: u.id })),

@@ -116,7 +116,7 @@ const SettingsView = () => {
 
       {/* Team Members & Roles */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-purple-600" />
             <h2 className="text-sm font-bold text-slate-900">Members & Role Permissions</h2>
@@ -153,9 +153,9 @@ const SettingsView = () => {
             const isOwnerRole = m.role === 'owner'
 
             return (
-              <div key={m.userId} className="py-3 flex items-center justify-between">
+              <div key={m.userId} className="py-3 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <Avatar size={32} style={{ backgroundColor: user.color }} className="text-white font-bold text-xs">
+                  <Avatar size={32} style={{ backgroundColor: user.color }} className="text-white font-bold text-xs flex-shrink-0">
                     {user.avatar}
                   </Avatar>
                   <div>
@@ -167,7 +167,7 @@ const SettingsView = () => {
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-500">{user.email}</div>
+                    <div className="text-[11px] text-slate-500 truncate max-w-[180px] sm:max-w-none">{user.email}</div>
                   </div>
                 </div>
 
@@ -214,7 +214,7 @@ const SettingsView = () => {
         onCancel={() => setAddMemberModalOpen(false)}
         footer={null}
         centered
-        width={480}
+        width="min(480px, 95vw)"
         styles={{ content: { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', color: '#0f172a' } }}
       >
         <form onSubmit={handleAddMember} className="mt-3 space-y-4 text-xs">

@@ -71,3 +71,39 @@ html, body {
   animation: bell-shake 0.8s ease-in-out infinite;
   transform-origin: top center;
 }
+
+/* ─── Global Responsive Improvements ─── */
+
+/* Prevent horizontal overflow */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Fluid media */
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent fixed-width elements from breaking layout */
+* {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Ant Design Modal: ensure it never overflows viewport on mobile */
+.ant-modal {
+  max-width: calc(100vw - 24px) !important;
+}
+
+/* Kanban board: ensure horizontal scroll wrapper doesn't cause page overflow */
+.kanban-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive tables: allow horizontal scrolling */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

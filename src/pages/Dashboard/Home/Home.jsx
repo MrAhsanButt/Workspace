@@ -249,7 +249,7 @@ const Home = () => {
       {/* View Switcher Tabs & Progress Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* View Switcher */}
-        <div className="flex items-center gap-1 p-1 bg-slate-200/60 border border-slate-200 rounded-xl max-w-fit">
+        <div className="flex items-center gap-1 p-1 bg-slate-200/60 border border-slate-200 rounded-xl max-w-fit overflow-x-auto">
           <button
             onClick={() => setActiveView('kanban')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
@@ -356,7 +356,7 @@ const Home = () => {
           {/* Search & Custom Filters */}
           <div className="flex flex-wrap items-center gap-2.5 bg-white border border-slate-200 p-2.5 rounded-xl shadow-xs">
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative flex-1 min-w-[160px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input
                 ref={searchInputRef}
@@ -492,7 +492,7 @@ const Home = () => {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
               <label className="text-slate-600 font-medium block mb-1">Status</label>
               <Select

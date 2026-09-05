@@ -139,7 +139,7 @@ const ListView = () => {
           <table className="w-full text-left text-xs text-slate-700">
             <thead className="bg-slate-50/80 text-slate-600 border-b border-slate-200">
               <tr>
-                <th className="p-3.5 w-10 text-center">
+                <th className="p-3 sm:p-3.5 w-10 text-center">
                   <input
                     type="checkbox"
                     checked={isAllSelected}
@@ -147,12 +147,12 @@ const ListView = () => {
                     className="accent-blue-600 rounded cursor-pointer w-4 h-4"
                   />
                 </th>
-                <th className="p-3.5 font-semibold text-slate-900">Title</th>
-                <th className="p-3.5 font-semibold text-slate-900">Status</th>
-                <th className="p-3.5 font-semibold text-slate-900">Priority</th>
-                <th className="p-3.5 font-semibold text-slate-900">Assignee</th>
-                <th className="p-3.5 font-semibold text-slate-900">Due Date</th>
-                <th className="p-3.5 font-semibold text-slate-900 text-right">Subtasks</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900">Title</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900">Status</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900 hidden sm:table-cell">Priority</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900 hidden md:table-cell">Assignee</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900 hidden md:table-cell">Due Date</th>
+                <th className="p-3 sm:p-3.5 font-semibold text-slate-900 text-right hidden lg:table-cell">Subtasks</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -180,7 +180,7 @@ const ListView = () => {
                           isSelected ? 'bg-blue-50/40' : ''
                         }`}
                       >
-                        <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3 sm:p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isSelected}
@@ -188,11 +188,11 @@ const ListView = () => {
                             className="accent-blue-600 rounded cursor-pointer w-4 h-4"
                           />
                         </td>
-                        <td className="p-3.5 font-medium text-slate-900 max-w-xs truncate">
+                        <td className="p-3 sm:p-3.5 font-medium text-slate-900 max-w-[150px] sm:max-w-xs truncate">
                           <div className="space-y-1">
                             <div>{task.title}</div>
                             {(task.labels || []).length > 0 && (
-                              <div className="flex gap-1">
+                              <div className="flex gap-1 flex-wrap">
                                 {task.labels.map((lbl) => (
                                   <span
                                     key={lbl}
@@ -205,9 +205,9 @@ const ListView = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-3.5">{getStatusBadge(task.status)}</td>
-                        <td className="p-3.5">{getPriorityBadge(task.priority)}</td>
-                        <td className="p-3.5">
+                        <td className="p-3 sm:p-3.5">{getStatusBadge(task.status)}</td>
+                        <td className="p-3 sm:p-3.5 hidden sm:table-cell">{getPriorityBadge(task.priority)}</td>
+                        <td className="p-3 sm:p-3.5 hidden md:table-cell">
                           {assignee ? (
                             <div className="flex items-center gap-1.5">
                               <Avatar size={18} style={{ backgroundColor: assignee.color }} className="text-white font-bold text-[9px]">
@@ -219,7 +219,7 @@ const ListView = () => {
                             <span className="text-slate-400">Unassigned</span>
                           )}
                         </td>
-                        <td className="p-3.5 text-slate-500">
+                        <td className="p-3 sm:p-3.5 text-slate-500 hidden md:table-cell">
                           {task.dueDate ? (
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -229,7 +229,7 @@ const ListView = () => {
                             '—'
                           )}
                         </td>
-                        <td className="p-3.5 text-right font-mono text-slate-500">
+                        <td className="p-3 sm:p-3.5 text-right font-mono text-slate-500 hidden lg:table-cell">
                           {totalSubs > 0 ? `${completedSubs}/${totalSubs}` : '—'}
                         </td>
                       </tr>

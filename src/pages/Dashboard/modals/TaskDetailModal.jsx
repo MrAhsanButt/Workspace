@@ -108,7 +108,7 @@ const TaskDetailModal = () => {
       open={!!selectedTask}
       onCancel={() => setSelectedTask(null)}
       footer={null}
-      width={680}
+      width="min(680px, 95vw)"
       centered
       closeIcon={<X className="w-5 h-5 text-slate-400 hover:text-slate-700" />}
       styles={{
@@ -117,7 +117,7 @@ const TaskDetailModal = () => {
           border: '1px solid #e2e8f0',
           borderRadius: '16px',
           color: '#0f172a',
-          padding: '24px',
+          padding: '16px',
         },
       }}
     >
@@ -132,7 +132,7 @@ const TaskDetailModal = () => {
             className="w-full bg-transparent text-xl font-bold text-slate-900 border-b border-transparent hover:border-slate-300 focus:border-blue-600 outline-none pb-1 transition-colors disabled:opacity-75"
             placeholder="Task title..."
           />
-          <div className="flex flex-wrap items-center gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5 max-w-full">
             {/* Status */}
             <Select
               value={selectedTask.status}
@@ -424,14 +424,14 @@ const TaskDetailModal = () => {
           {/* Add comment with recipient selector & bell indicator */}
           {canEdit && (
             <form onSubmit={handleAddComment} className="space-y-2 pt-1">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+              <div className="flex flex-wrap items-start justify-between gap-2 text-xs text-slate-500">
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-slate-700">Comment to:</span>
                   <Select
                     size="small"
                     value={commentRecipientId}
                     onChange={(val) => setCommentRecipientId(val)}
-                    className="min-w-[140px]"
+                    className="min-w-[120px] max-w-full"
                     options={MOCK_USERS.map((u) => ({
                       value: u.id,
                       label: (
