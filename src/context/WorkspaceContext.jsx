@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import bellSound from '@/assets/bell.wav'
+import { useAuth } from '@/context/AuthContext'
 
 export const WorkspaceContext = createContext()
 
@@ -10,29 +11,201 @@ export const MOCK_USERS = [
   { id: 'user-4', name: 'Emma Watson', email: 'emma@workspace.io', role: 'viewer', avatar: 'EW', color: '#64748b' },
 ]
 
-const INITIAL_DATA = {
-  workspaces: [],
-  activeWorkspaceId: null,
-  projects: [],
-  activeProjectId: null,
+export const ROLE_CONFIG = {
+  owner: {
+    label: 'Owner',
+    icon: '👑',
+    color: '#9333ea',
+    bg: '#f3e8ff',
+    border: '#d8b4fe',
+    badgeClass: 'bg-purple-100 text-purple-800 border-purple-300',
+    description: 'Complete workspace ownership, member management, danger zone & broadcasts',
+  },
+  admin: {
+    label: 'Admin',
+    icon: '🛡️',
+    color: '#2563eb',
+    bg: '#eff6ff',
+    border: '#bfdbfe',
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+    description: 'Workspace configuration, project & column management, member invites & role assignments',
+  },
+  member: {
+    label: 'Member',
+    icon: '💼',
+    color: '#059669',
+    bg: '#ecfdf5',
+    border: '#a7f3d0',
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    description: 'Task creation, editing, status movement, subtasks, files & commenting',
+  },
+  viewer: {
+    label: 'Viewer',
+    icon: '👁️',
+    color: '#64748b',
+    bg: '#f1f5f9',
+    border: '#cbd5e1',
+    badgeClass: 'bg-slate-100 text-slate-700 border-slate-300',
+    description: 'Read-only access across workspaces, projects, views & task details',
+  },
+}
+
+const DEFAULT_INITIAL_DATA = {
+  workspaces: [
+    {
+      id: 'ws-default',
+      name: 'Acme Product Team',
+      emoji: '🚀',
+      members: [
+        { userId: 'user-1', role: 'owner' },
+        { userId: 'user-2', role: 'admin' },
+        { userId: 'user-3', role: 'member' },
+        { userId: 'user-4', role: 'viewer' },
+      ],
+    },
+  ],
+  activeWorkspaceId: 'ws-default',
+  projects: [
+    {
+      id: 'proj-1',
+      workspaceId: 'ws-default',
+      name: 'Core Platform',
+      icon: '⚡',
+      description: 'Main product features, architecture & workflows',
+      columns: ['To Do', 'In Progress', 'Done'],
+    },
+    {
+      id: 'proj-2',
+      workspaceId: 'ws-default',
+      name: 'Design System',
+      icon: '🎨',
+      description: 'Component library, styles & micro-interactions',
+      columns: ['To Do', 'In Progress', 'Done'],
+    },
+  ],
+  activeProjectId: 'proj-1',
   activeView: 'kanban',
-  tasks: [],
-  activityLog: [],
-  notifications: [],
+  tasks: [
+    {
+      id: 'task-1',
+      projectId: 'proj-1',
+      workspaceId: 'ws-default',
+      title: 'Implement Role-Based Access Control (RBAC)',
+      description: 'Define permissions for Owner, Admin, Member, and Viewer with permission-gated UI and access denied feedback.',
+      status: 'Done',
+      priority: 'urgent',
+      dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      assigneeId: 'user-1',
+      labels: ['Security', 'Auth'],
+      subtasks: [
+        { id: 'sub-1', title: 'Define Owner, Admin, Member, Viewer roles', completed: true },
+        { id: 'sub-2', title: 'Gate UI actions and Kanban drag & drop', completed: true },
+        { id: 'sub-3', title: 'Build Access Denied modal with role simulator', completed: true },
+      ],
+      attachments: [],
+      comments: [
+        {
+          id: 'c-1',
+          userId: 'user-1',
+          recipientId: 'user-2',
+          text: 'Sarah, please review the admin permission matrix!',
+          createdAt: '10:15 AM',
+        },
+      ],
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'task-2',
+      projectId: 'proj-1',
+      workspaceId: 'ws-default',
+      title: 'Cross-tab sound and notification synchronization',
+      description: 'Ensure bell sounds trigger correctly for targeted comments and owner broadcasts.',
+      status: 'In Progress',
+      priority: 'high',
+      dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+      assigneeId: 'user-2',
+      labels: ['Collaboration', 'Realtime'],
+      subtasks: [
+        { id: 'sub-4', title: 'BroadcastChannel events listener', completed: true },
+        { id: 'sub-5', title: 'HTML5 Audio play on user web', completed: false },
+      ],
+      attachments: [],
+      comments: [],
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'task-3',
+      projectId: 'proj-1',
+      workspaceId: 'ws-default',
+      title: 'Design interactive role permissions matrix table',
+      description: 'Add comparison card in workspace settings to clearly show what each role is permitted to perform.',
+      status: 'To Do',
+      priority: 'medium',
+      dueDate: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+      assigneeId: 'user-3',
+      labels: ['Design', 'Settings'],
+      subtasks: [],
+      attachments: [],
+      comments: [],
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: 'task-4',
+      projectId: 'proj-1',
+      workspaceId: 'ws-default',
+      title: 'Review read-only viewer mode on Kanban board',
+      description: 'Verify drag-and-drop is disabled and quick add triggers access denied explanation.',
+      status: 'To Do',
+      priority: 'low',
+      dueDate: new Date(Date.now() + 86400000 * 5).toISOString().split('T')[0],
+      assigneeId: 'user-4',
+      labels: ['Testing', 'Viewer'],
+      subtasks: [],
+      attachments: [],
+      comments: [],
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  activityLog: [
+    {
+      id: 'act-1',
+      userId: 'user-1',
+      action: 'Configured workspace roles',
+      target: 'Owner, Admin, Member, Viewer',
+      timestamp: 'Just now',
+    },
+  ],
+  notifications: [
+    {
+      id: 'n-init',
+      title: '👑 Welcome to Acme Product Team',
+      desc: 'Owner, Admin, Member, and Viewer role permissions are active.',
+      time: 'Just now',
+      read: false,
+    },
+  ],
   users: MOCK_USERS,
 }
 
 const STORAGE_KEY = 'capstone_workspace_v3'
 
 export const WorkspaceProvider = ({ children }) => {
+  const auth = useAuth()
+  const authUser = auth?.user
+
   const [data, setData] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed?.workspaces && parsed.workspaces.length > 0) {
+          return parsed
+        }
+      }
     } catch (e) {
       console.error(e)
     }
-    return INITIAL_DATA
+    return DEFAULT_INITIAL_DATA
   })
 
   const [history, setHistory] = useState([])
@@ -46,6 +219,25 @@ export const WorkspaceProvider = ({ children }) => {
       return MOCK_USERS[0]
     }
   })
+
+  // Synchronize activeUser with AuthContext
+  useEffect(() => {
+    if (authUser && authUser.email) {
+      const matched = (data.users || MOCK_USERS).find((u) => u.email === authUser.email)
+      if (matched) {
+        setActiveUser(matched)
+      } else {
+        setActiveUser({
+          id: authUser.id || `user-${authUser.email}`,
+          name: authUser.fullName || authUser.name || 'User',
+          email: authUser.email,
+          role: authUser.role || 'member',
+          avatar: (authUser.fullName || authUser.name || 'U')[0]?.toUpperCase(),
+          color: '#2563eb',
+        })
+      }
+    }
+  }, [authUser?.email])
 
   const activeUserRef = useRef(activeUser)
   useEffect(() => {
@@ -197,11 +389,6 @@ export const WorkspaceProvider = ({ children }) => {
   const [sortBy, setSortBy] = useState('dueDate') // dueDate, priority, title, created
   const [selectedTask, setSelectedTask] = useState(null)
 
-  // Permissions
-  const canEdit = activeUser.role !== 'viewer'
-  const canManageWorkspace = activeUser.role === 'owner' || activeUser.role === 'admin'
-  const isOwner = activeUser.role === 'owner'
-
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }, [data])
@@ -247,6 +434,79 @@ export const WorkspaceProvider = ({ children }) => {
 
   const activeProject =
     workspaceProjects.find((p) => p.id === data.activeProjectId) || workspaceProjects[0] || data.projects[0]
+
+  // Role Resolution: checks active workspace membership, falls back to activeUser.role
+  const currentMemberRecord = activeWorkspace?.members?.find((m) => m.userId === activeUser.id)
+  const activeRole = currentMemberRecord?.role || activeUser.role || 'viewer'
+
+  // Role Capability Flags
+  const isOwner = activeRole === 'owner'
+  const isAdmin = activeRole === 'admin' || isOwner
+  const isMember = activeRole === 'member' || isAdmin
+  const isViewer = activeRole === 'viewer'
+  const canEdit = !isViewer // Owner, Admin, Member can edit/create tasks
+  const canManageWorkspace = isAdmin // Owner and Admin can manage workspace settings
+  const canDeleteWorkspace = isOwner // Only Owner can delete the workspace
+  const canManageMembers = isAdmin // Owner and Admin can add/remove members and assign roles
+  const canCustomizeColumns = isAdmin // Owner and Admin can add kanban columns
+
+  // Access Denied Modal State
+  const [accessDeniedModal, setAccessDeniedModal] = useState({
+    open: false,
+    actionTitle: '',
+    message: '',
+    requiredRoles: [],
+  })
+
+  const triggerAccessDenied = (actionTitle, message, requiredRoles = ['admin', 'owner']) => {
+    setAccessDeniedModal({
+      open: true,
+      actionTitle,
+      message,
+      requiredRoles,
+    })
+  }
+
+  const closeAccessDenied = () => {
+    setAccessDeniedModal((prev) => ({ ...prev, open: false }))
+  }
+
+  // Instant Role Switcher / Simulator for Testing
+  const simulateRole = (newRole) => {
+    if (!activeWorkspace) return
+    const updatedWorkspaces = data.workspaces.map((w) => {
+      if (w.id !== activeWorkspace.id) return w
+      const isMemberAlready = (w.members || []).some((m) => m.userId === activeUser.id)
+      let updatedMembers
+      if (isMemberAlready) {
+        updatedMembers = w.members.map((m) =>
+          m.userId === activeUser.id ? { ...m, role: newRole } : m
+        )
+      } else {
+        updatedMembers = [...(w.members || []), { userId: activeUser.id, role: newRole }]
+      }
+      return { ...w, members: updatedMembers }
+    })
+
+    const updatedUser = { ...activeUser, role: newRole }
+    setActiveUser(updatedUser)
+    try {
+      const savedUser = JSON.parse(localStorage.getItem('user')) || {}
+      if (savedUser.user) savedUser.user.role = newRole
+      else savedUser.role = newRole
+      localStorage.setItem('user', JSON.stringify(savedUser))
+    } catch {}
+
+    commitData((prev) => ({
+      ...prev,
+      workspaces: updatedWorkspaces,
+    }))
+    closeAccessDenied()
+    const roleIcons = { owner: '👑', admin: '🛡️', member: '💼', viewer: '👁️' }
+    if (window.toast) {
+      window.toast(`Switched permissions to ${roleIcons[newRole] || ''} ${newRole.toUpperCase()}`, 'info')
+    }
+  }
 
   // Filtered Tasks for Active Project
   const rawProjectTasks = data.tasks.filter((t) => t.projectId === activeProject?.id)
@@ -308,7 +568,13 @@ export const WorkspaceProvider = ({ children }) => {
       id: `ws-${Date.now()}`,
       name: name.trim(),
       emoji,
-      members: [{ userId: activeUser.id, role: 'owner' }],
+      members: [
+        { userId: activeUser.id, role: 'owner' },
+        ...MOCK_USERS.filter((u) => u.id !== activeUser.id).map((u) => ({
+          userId: u.id,
+          role: u.role,
+        })),
+      ],
     }
     const defaultProj = {
       id: `proj-${Date.now()}`,
@@ -330,7 +596,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const renameWorkspace = (wsId, newName) => {
-    if (!canManageWorkspace) return window.toast('Admin permission required', 'error')
+    if (!canManageWorkspace) {
+      triggerAccessDenied('Rename Workspace', 'Only Workspace Admins and Owners have permission to rename the workspace.', ['admin', 'owner'])
+      return
+    }
     const trimmed = newName.trim()
     if (!trimmed) return
     const updatedWorkspaces = data.workspaces.map((w) => (w.id === wsId ? { ...w, name: trimmed } : w))
@@ -341,7 +610,7 @@ export const WorkspaceProvider = ({ children }) => {
     logActivity('Renamed workspace', trimmed)
 
     // "when owner change or message any thing the bell ring on all"
-    if (activeUser.role === 'owner') {
+    if (activeRole === 'owner') {
       playBellSound()
       const notif = {
         id: `n-${Date.now()}`,
@@ -370,7 +639,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const deleteWorkspace = (wsId) => {
-    if (!isOwner) return window.toast('Only owners can delete workspaces', 'error')
+    if (!isOwner) {
+      triggerAccessDenied('Delete Workspace', 'Only the Workspace Owner has permission to permanently delete this workspace.', ['owner'])
+      return
+    }
     if (data.workspaces.length <= 1) return window.toast('Cannot delete the last workspace', 'warning')
     const remaining = data.workspaces.filter((w) => w.id !== wsId)
     commitData((prev) => ({
@@ -384,8 +656,19 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const updateMemberRole = (userId, newRole) => {
-    if (!canManageWorkspace) return window.toast('Admin permission required', 'error')
-    const targetUser = MOCK_USERS.find((u) => u.id === userId)
+    if (!canManageMembers) {
+      triggerAccessDenied('Assign Member Role', 'Only Workspace Admins and Owners can assign or change member roles.', ['admin', 'owner'])
+      return
+    }
+    const targetUser = (data.users || MOCK_USERS).find((u) => u.id === userId)
+    const targetMemberRecord = activeWorkspace?.members?.find((m) => m.userId === userId)
+
+    // Admins cannot alter an Owner's role
+    if (targetMemberRecord?.role === 'owner' && !isOwner) {
+      triggerAccessDenied('Modify Owner Role', 'Admins cannot change the role of the workspace Owner.', ['owner'])
+      return
+    }
+
     const updatedWorkspaces = data.workspaces.map((w) => {
       if (w.id !== data.activeWorkspaceId) return w
       const members = w.members.map((m) => (m.userId === userId ? { ...m, role: newRole } : m))
@@ -398,7 +681,7 @@ export const WorkspaceProvider = ({ children }) => {
     logActivity('Updated role', `${targetUser?.name || userId} → ${newRole}`)
 
     // "when owner change or message any thing the bell ring on all"
-    if (activeUser.role === 'owner') {
+    if (activeRole === 'owner') {
       playBellSound()
       const notif = {
         id: `n-${Date.now()}`,
@@ -428,7 +711,10 @@ export const WorkspaceProvider = ({ children }) => {
 
   // Add Member to Workspace
   const addMemberToWorkspace = (workspaceId, { userId, email, name, role = 'member' }) => {
-    if (!canManageWorkspace) return window.toast?.('Admin permission required to add members', 'error')
+    if (!canManageMembers) {
+      triggerAccessDenied('Add Member', 'Only Workspace Admins and Owners can add or invite members to this workspace.', ['admin', 'owner'])
+      return
+    }
 
     const wsId = workspaceId || data.activeWorkspaceId
     const targetWs = data.workspaces.find((w) => w.id === wsId)
@@ -501,7 +787,7 @@ export const WorkspaceProvider = ({ children }) => {
     logActivity('Added member', `${memberName} (${role.toUpperCase()}) → ${targetWs.name}`)
 
     // "when owner change or message any thing the bell ring on all"
-    if (activeUser.role === 'owner') {
+    if (activeRole === 'owner') {
       playBellSound()
       const notif = {
         id: `n-${Date.now()}`,
@@ -533,7 +819,10 @@ export const WorkspaceProvider = ({ children }) => {
 
   // Remove Member from Workspace
   const removeMemberFromWorkspace = (workspaceId, userId) => {
-    if (!canManageWorkspace) return window.toast?.('Admin permission required', 'error')
+    if (!canManageMembers) {
+      triggerAccessDenied('Remove Member', 'Only Workspace Admins and Owners can remove members from this workspace.', ['admin', 'owner'])
+      return
+    }
 
     const wsId = workspaceId || data.activeWorkspaceId
     const targetWs = data.workspaces.find((w) => w.id === wsId)
@@ -541,7 +830,8 @@ export const WorkspaceProvider = ({ children }) => {
 
     const memberRecord = targetWs.members.find((m) => m.userId === userId)
     if (memberRecord?.role === 'owner') {
-      return window.toast?.('Cannot remove the workspace Owner', 'error')
+      triggerAccessDenied('Remove Owner', 'The Workspace Owner cannot be removed from the workspace.', [])
+      return
     }
 
     const targetUser = (data.users || MOCK_USERS).find((u) => u.id === userId)
@@ -560,7 +850,7 @@ export const WorkspaceProvider = ({ children }) => {
     logActivity('Removed member', `${targetUser?.name || 'User'} from ${targetWs.name}`)
 
     // "when owner change or message any thing the bell ring on all"
-    if (activeUser.role === 'owner') {
+    if (activeRole === 'owner') {
       playBellSound()
       const notif = {
         id: `n-${Date.now()}`,
@@ -591,11 +881,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   // Owner Broadcast Message Function
-  // "when owner change or message any thing the bell ring on all"
   const broadcastOwnerMessage = (messageText) => {
     if (!messageText || !messageText.trim()) return
-    if (activeUser.role !== 'owner') {
-      if (window.toast) window.toast('Only the workspace Owner can broadcast messages to all', 'error')
+    if (!isOwner) {
+      triggerAccessDenied('Owner Announcement', 'Only the Workspace Owner can broadcast announcements to all users.', ['owner'])
       return
     }
 
@@ -635,7 +924,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const createProject = (name, icon = '📂', description = '') => {
-    if (!canEdit) return window.toast('Viewers cannot create projects', 'error')
+    if (!canEdit) {
+      triggerAccessDenied('Create Project', 'Viewers have read-only access and cannot create projects.', ['member', 'admin', 'owner'])
+      return
+    }
     const newProj = {
       id: `proj-${Date.now()}`,
       workspaceId: activeWorkspace.id,
@@ -654,7 +946,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const deleteProject = (projId) => {
-    if (!canManageWorkspace) return window.toast('Admin required', 'error')
+    if (!canManageWorkspace) {
+      triggerAccessDenied('Delete Project', 'Only Workspace Admins and Owners can delete projects.', ['admin', 'owner'])
+      return
+    }
     if (workspaceProjects.length <= 1) return window.toast('Cannot delete last project', 'warning')
     const remaining = data.projects.filter((p) => p.id !== projId)
     const nextProj = remaining.find((p) => p.workspaceId === activeWorkspace.id)
@@ -668,7 +963,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const addColumn = (colName) => {
-    if (!canManageWorkspace) return window.toast('Admin required to add columns', 'error')
+    if (!canCustomizeColumns) {
+      triggerAccessDenied('Customize Columns', 'Only Workspace Admins and Owners can add or customize Kanban columns.', ['admin', 'owner'])
+      return
+    }
     if (!colName.trim()) return
     const currentCols = activeProject.columns || ['To Do', 'In Progress', 'Done']
     if (currentCols.includes(colName.trim())) return window.toast('Column already exists', 'warning')
@@ -682,7 +980,10 @@ export const WorkspaceProvider = ({ children }) => {
 
   // Task Operations
   const createTask = (taskData) => {
-    if (!canEdit) return window.toast('Viewers cannot create tasks', 'error')
+    if (!canEdit) {
+      triggerAccessDenied('Create Task', 'Viewers have read-only access and cannot create tasks.', ['member', 'admin', 'owner'])
+      return
+    }
     const newTask = {
       id: `task-${Date.now()}`,
       projectId: activeProject.id,
@@ -711,7 +1012,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const updateTask = (taskId, updates) => {
-    if (!canEdit) return window.toast('Viewers cannot edit tasks', 'error')
+    if (!canEdit) {
+      triggerAccessDenied('Edit Task', 'Viewers have read-only access and cannot modify task details.', ['member', 'admin', 'owner'])
+      return
+    }
     const updatedTasksList = data.tasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t))
     commitData((prev) => ({
       ...prev,
@@ -724,7 +1028,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const moveTaskStatus = (taskId, newStatus) => {
-    if (!canEdit) return window.toast('Viewers cannot move tasks', 'error')
+    if (!canEdit) {
+      triggerAccessDenied('Move Task', 'Viewers have read-only access and cannot move or update task status.', ['member', 'admin', 'owner'])
+      return
+    }
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task || task.status === newStatus) return
     const updatedTasksList = data.tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
@@ -737,7 +1044,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const deleteTask = (taskId) => {
-    if (!canEdit) return window.toast('Viewers cannot delete tasks', 'error')
+    if (!canEdit) {
+      triggerAccessDenied('Delete Task', 'Viewers have read-only access and cannot delete tasks.', ['member', 'admin', 'owner'])
+      return
+    }
     commitData((prev) => ({
       ...prev,
       tasks: prev.tasks.filter((t) => t.id !== taskId),
@@ -747,7 +1057,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const duplicateTask = (taskId) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Duplicate Task', 'Viewers have read-only access and cannot duplicate tasks.', ['member', 'admin', 'owner'])
+      return
+    }
     const original = data.tasks.find((t) => t.id === taskId)
     if (!original) return
     const copy = {
@@ -765,7 +1078,11 @@ export const WorkspaceProvider = ({ children }) => {
 
   // Subtask Operations
   const addSubtask = (taskId, title) => {
-    if (!canEdit || !title.trim()) return
+    if (!canEdit) {
+      triggerAccessDenied('Add Subtask', 'Viewers have read-only access and cannot add subtasks.', ['member', 'admin', 'owner'])
+      return
+    }
+    if (!title.trim()) return
     const newSub = { id: `sub-${Date.now()}`, title: title.trim(), completed: false }
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task) return
@@ -773,7 +1090,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const toggleSubtask = (taskId, subId) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Update Subtask', 'Viewers have read-only access and cannot mark subtasks complete.', ['member', 'admin', 'owner'])
+      return
+    }
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task) return
     const updated = (task.subtasks || []).map((s) =>
@@ -783,14 +1103,20 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const deleteSubtask = (taskId, subId) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Delete Subtask', 'Viewers have read-only access and cannot delete subtasks.', ['member', 'admin', 'owner'])
+      return
+    }
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task) return
     updateTask(taskId, { subtasks: (task.subtasks || []).filter((s) => s.id !== subId) })
   }
 
   const convertSubtaskToTask = (taskId, subId) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Convert Subtask', 'Viewers have read-only access and cannot convert subtasks.', ['member', 'admin', 'owner'])
+      return
+    }
     const task = data.tasks.find((t) => t.id === taskId)
     const sub = task?.subtasks?.find((s) => s.id === subId)
     if (!sub) return
@@ -799,15 +1125,18 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   // Comments: targeted bell ringing
-  // "when owner or other comment to someone the bell ring on that user web"
   const addComment = (taskId, text, recipientId) => {
+    if (!canEdit) {
+      triggerAccessDenied('Add Comment', 'Viewers have read-only access and cannot post comments.', ['member', 'admin', 'owner'])
+      return
+    }
     if (!text || !text.trim()) return
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task) return
 
     // Target recipient: explicitly selected recipientId OR task assignee OR active user
     const targetRecipientId = recipientId || task.assigneeId || activeUser.id
-    const targetUser = MOCK_USERS.find((u) => u.id === targetRecipientId) || activeUser
+    const targetUser = (data.users || MOCK_USERS).find((u) => u.id === targetRecipientId) || activeUser
 
     const newComment = {
       id: `c-${Date.now()}`,
@@ -835,7 +1164,6 @@ export const WorkspaceProvider = ({ children }) => {
 
     // Ring bell ONLY on that target user's web:
     if (activeUser.id === targetRecipientId) {
-      // The current web session is the targeted user (e.g. self-test or replying to assigned task)
       playBellSound()
       const notif = {
         id: `n-${Date.now()}`,
@@ -850,13 +1178,11 @@ export const WorkspaceProvider = ({ children }) => {
       }))
       if (window.toast) window.toast(`🔔 Bell rung for comment to ${targetUser.name}`, 'info')
     } else {
-      // Sender is NOT the recipient: sender's web does NOT ring bell!
       if (window.toast) {
         window.toast(`Comment sent to ${targetUser.name} (🔔 Bell will ring on their screen)`, 'success')
       }
     }
 
-    // Broadcast across tabs so the targeted recipient's tab rings the bell!
     postBroadcast({
       type: 'COMMENT_TO_USER',
       senderId: activeUser.id,
@@ -871,6 +1197,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const deleteComment = (taskId, commentId) => {
+    if (!canEdit) {
+      triggerAccessDenied('Delete Comment', 'Viewers have read-only access and cannot delete comments.', ['member', 'admin', 'owner'])
+      return
+    }
     const task = data.tasks.find((t) => t.id === taskId)
     if (!task) return
     updateTask(taskId, { comments: (task.comments || []).filter((c) => c.id !== commentId) })
@@ -878,7 +1208,10 @@ export const WorkspaceProvider = ({ children }) => {
 
   // Bulk Actions
   const bulkUpdateStatus = (taskIds, newStatus) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Bulk Update Status', 'Viewers have read-only access and cannot perform bulk actions.', ['member', 'admin', 'owner'])
+      return
+    }
     commitData((prev) => ({
       ...prev,
       tasks: prev.tasks.map((t) => (taskIds.includes(t.id) ? { ...t, status: newStatus } : t)),
@@ -887,7 +1220,10 @@ export const WorkspaceProvider = ({ children }) => {
   }
 
   const bulkDelete = (taskIds) => {
-    if (!canEdit) return
+    if (!canEdit) {
+      triggerAccessDenied('Bulk Delete Tasks', 'Viewers have read-only access and cannot perform bulk deletions.', ['member', 'admin', 'owner'])
+      return
+    }
     commitData((prev) => ({
       ...prev,
       tasks: prev.tasks.filter((t) => !taskIds.includes(t.id)),
@@ -903,7 +1239,6 @@ export const WorkspaceProvider = ({ children }) => {
     }))
     if (window.toast) window.toast('Notifications marked as read', 'info')
   }
-
 
   const exportWorkspaceJSON = () => {
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`
@@ -931,8 +1266,8 @@ export const WorkspaceProvider = ({ children }) => {
 
   const resetAllData = () => {
     localStorage.removeItem(STORAGE_KEY)
-    setData(INITIAL_DATA)
-    if (window.toast) window.toast('Reset to default workspace data', 'info')
+    setData(DEFAULT_INITIAL_DATA)
+    if (window.toast) window.toast('Reset to default workspace data with all 4 roles', 'info')
   }
 
   return (
@@ -1005,9 +1340,24 @@ export const WorkspaceProvider = ({ children }) => {
 
         activeUser,
         switchMockUser,
+
+        // Role & RBAC permissions
+        activeRole,
+        isOwner,
+        isAdmin,
+        isMember,
+        isViewer,
         canEdit,
         canManageWorkspace,
-        isOwner,
+        canDeleteWorkspace,
+        canManageMembers,
+        canCustomizeColumns,
+
+        // Access Denied Modal controls
+        accessDeniedModal,
+        triggerAccessDenied,
+        closeAccessDenied,
+        simulateRole,
 
         undo,
         canUndo: history.length > 0,
@@ -1023,3 +1373,4 @@ export const WorkspaceProvider = ({ children }) => {
 }
 
 export const useWorkspace = () => useContext(WorkspaceContext)
+

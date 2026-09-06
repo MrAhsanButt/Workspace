@@ -33,6 +33,9 @@ const TaskDetailModal = () => {
     canEdit,
     activeUser,
     activeProject,
+    isViewer,
+    simulateRole,
+    triggerAccessDenied,
   } = useWorkspace()
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('')
@@ -122,6 +125,25 @@ const TaskDetailModal = () => {
       }}
     >
       <div className="space-y-5 pt-1 text-slate-800">
+        {/* Viewer Mode Banner */}
+        {isViewer && (
+          <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base">👁️</span>
+              <span>
+                <strong>Viewer (Read-Only):</strong> Editing fields, subtasks, files, and comments are disabled.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => simulateRole('member')}
+              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-md text-[11px] cursor-pointer shrink-0 shadow-xs"
+            >
+              Switch to Member
+            </button>
+          </div>
+        )}
+
         {/* Title & Metadata */}
         <div className="space-y-3">
           <input
@@ -494,6 +516,22 @@ const TaskDetailModal = () => {
                 </div>
               )}
             </form>
+          )}
+
+          {!canEdit && (
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                <span>Viewers have read-only access and cannot post comments.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => simulateRole('member')}
+                className="text-blue-600 hover:underline font-semibold cursor-pointer"
+              >
+                Switch to Member to Comment
+              </button>
+            </div>
           )}
         </div>
 

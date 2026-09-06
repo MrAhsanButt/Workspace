@@ -10,15 +10,18 @@ import {
   RotateCcw,
   Sparkles,
   UserPlus,
+  Lock,
+  Eye,
 } from 'lucide-react'
 import { Select, Modal, Input, Avatar } from 'antd'
-import { useWorkspace, MOCK_USERS } from '@/context/WorkspaceContext'
+import { useWorkspace, MOCK_USERS, ROLE_CONFIG } from '@/context/WorkspaceContext'
 import KanbanView from '../views/KanbanView'
 import ListView from '../views/ListView'
 import CalendarView from '../views/CalendarView'
 import ActivityLogView from '../views/ActivityLogView'
 import SettingsView from '../views/SettingsView'
 import TaskDetailModal from '../modals/TaskDetailModal'
+import AccessDeniedModal from '../modals/AccessDeniedModal'
 
 const Home = () => {
   const {
@@ -48,6 +51,10 @@ const Home = () => {
     activeWorkspace,
     canManageWorkspace,
     allUsers,
+    activeRole,
+    isViewer,
+    simulateRole,
+    triggerAccessDenied,
   } = useWorkspace()
 
   const [createProjModalOpen, setCreateProjModalOpen] = useState(false)
@@ -80,7 +87,11 @@ const Home = () => {
       // Create task shortcut: 'c' or 'n'
       if (e.key === 'c' || e.key === 'n') {
         e.preventDefault()
-        if (canEdit) setCreateTaskModalOpen(true)
+        if (canEdit) {
+          setCreateTaskModalOpen(true)
+        } else {
+          triggerAccessDenied('Create Task', 'Viewers have read-only access and cannot create tasks.', ['member', 'admin', 'owner'])
+        }
         return
       }
 
@@ -101,7 +112,7 @@ const Home = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [undo, canEdit, setActiveView])
+  }, [undo, canEdit, setActiveView, triggerAccessDenied])
 
   const handleCreateProject = (e) => {
     e.preventDefault()
@@ -177,13 +188,22 @@ const Home = () => {
             )
           })}
 
-          {canEdit && (
+          {canEdit ? (
             <button
               onClick={() => setCreateProjModalOpen(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white text-slate-500 hover:text-slate-800 border border-dashed border-slate-300 hover:border-slate-400 text-xs font-medium transition-colors cursor-pointer"
               title="Add new project"
             >
               <Plus className="w-3.5 h-3.5" />
+              <span>Project</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => triggerAccessDenied('Create Project', 'Viewers have read-only access and cannot create new projects.', ['member', 'admin', 'owner'])}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-400 border border-dashed border-slate-200 text-xs font-medium cursor-pointer"
+              title="Viewer: Read-only"
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
               <span>Project</span>
             </button>
           )}
@@ -234,7 +254,7 @@ const Home = () => {
             </button>
           )}
 
-          {canEdit && (
+          {canEdit ? (
             <button
               onClick={() => setCreateTaskModalOpen(true)}
               className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg text-xs transition-colors shrink-0 shadow-xs cursor-pointer"
@@ -242,9 +262,38 @@ const Home = () => {
               <Plus className="w-4 h-4" />
               <span>New Task <span className="opacity-60 text-[10px] ml-1">(C)</span></span>
             </button>
+          ) : (
+            <button
+              onClick={() => triggerAccessDenied('Create Task', 'Viewers have read-only access. Switch to Member, Admin, or Owner to create tasks.', ['member', 'admin', 'owner'])}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-semibold border border-slate-200 cursor-pointer shadow-xs"
+              title="Viewer: Read-only access"
+            >
+              <Lock className="w-3.5 h-3.5 text-slate-400" />
+              <span>New Task (Read Only)</span>
+            </button>
           )}
         </div>
       </div>
+
+      {/* Viewer Mode Banner */}
+      {isViewer && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="text-lg">👁️</span>
+            <div>
+              <span className="font-bold text-amber-950">Viewer Mode (Read-Only):</span> You are viewing{' '}
+              <span className="font-semibold">{activeWorkspace?.name}</span> with Viewer permissions. Editing, moving, and creating tasks are disabled.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => simulateRole('member')}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer shrink-0 shadow-xs"
+          >
+            Switch to Member (Test Editing)
+          </button>
+        </div>
+      )}
 
       {/* View Switcher Tabs & Progress Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -435,6 +484,9 @@ const Home = () => {
 
       {/* Task Detail Modal */}
       <TaskDetailModal />
+
+      {/* Access Denied Modal */}
+      <AccessDeniedModal />
 
       {/* Create Project Modal */}
       <Modal

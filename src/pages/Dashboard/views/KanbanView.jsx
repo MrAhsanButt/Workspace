@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Plus, ArrowRight, ArrowLeft, Trash2, Calendar, CheckSquare, GripVertical } from 'lucide-react'
+import { Plus, ArrowRight, ArrowLeft, Trash2, Calendar, CheckSquare, GripVertical, Lock } from 'lucide-react'
 import { Avatar } from 'antd'
 import { useWorkspace, MOCK_USERS } from '@/context/WorkspaceContext'
 
@@ -14,6 +14,9 @@ const KanbanView = () => {
     addColumn,
     canEdit,
     canManageWorkspace,
+    canCustomizeColumns,
+    isViewer,
+    triggerAccessDenied,
   } = useWorkspace()
 
   const [addingCol, setAddingCol] = useState(null)
@@ -68,9 +71,15 @@ const KanbanView = () => {
         return (
           <div
             key={col}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e) => {
+              if (canEdit) e.preventDefault()
+            }}
             onDrop={(e) => {
               e.preventDefault()
+              if (!canEdit) {
+                triggerAccessDenied('Move Task Status', 'Viewers have read-only access and cannot move or update task status.', ['member', 'admin', 'owner'])
+                return
+              }
               const taskId = e.dataTransfer.getData('taskId')
               if (taskId) moveTaskStatus(taskId, col)
             }}
@@ -84,13 +93,21 @@ const KanbanView = () => {
                   {colTasks.length}
                 </span>
               </div>
-              {canEdit && (
+              {canEdit ? (
                 <button
                   onClick={() => setAddingCol(col)}
                   className="p-1 text-slate-500 hover:text-slate-900 rounded hover:bg-slate-200 transition-colors cursor-pointer"
                   title="Add task to column"
                 >
                   <Plus className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => triggerAccessDenied('Create Task', 'Viewers have read-only access and cannot add tasks.', ['member', 'admin', 'owner'])}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded hover:bg-slate-200 transition-colors cursor-pointer"
+                  title="Viewer: Read-only access"
+                >
+                  <Lock className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
